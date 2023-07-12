@@ -72,11 +72,9 @@ public:
         while(tmp != nullptr){
             if (val > tmp->value) {
                 prev = tmp;
-//                tmp = &(*tmp)->right;
                 tmp = tmp->right.get();
             } else if(val < tmp->value) {
                 prev = tmp;
-//                tmp = &(*tmp)->left;
                 tmp = tmp->left.get();
             }
         }
@@ -103,6 +101,11 @@ public:
             curr = curr->value > val ? curr->left.get() : curr->right.get();
         }
         return false;
+    }
+
+    bool deleteElement(T const& val){
+        if(root == nullptr) return false;
+        return recursiveDelete(root, val);
     }
 
     const T getRootValue() {
@@ -158,6 +161,76 @@ private:
         retVal += recursivePostOrder(node->right.get());
         retVal += " " + std::to_string(node->value);
         return retVal;
+    }
+
+    auto getItem(Node const* node, T const& val){
+        if(node == nullptr) return nullptr;
+
+        if(node->value < val) return getItem(node->left, val);
+        else if(node->value > val) return getItem(node->right, val);
+        return node;
+    }
+
+    bool recursiveDelete(std::unique_ptr<Node>& node, T const& val){
+        /**
+         * Delete of an element in a binary tree has three cases:
+         * 1) node is a leaf -> just delete it
+         * 2) node with one child -> made the child the node
+         * 3) node with two child -> swap the value with the lowest value of
+         *    the right child and then delete the node as per 1,2
+        */
+
+        if(node == nullptr) return false;
+
+        if(node->value == val){
+            if(node->left != nullptr && node->right != nullptr){
+                // third case,
+                // find the leftmost descendant in the right subtree
+                Node* parent = node.get();
+                Node* leftmost = node->right.get();
+                while(leftmost->left != nullptr){
+                    parent = leftmost;
+                    leftmost = leftmost->left.get();
+                }
+                node->value = leftmost->value;
+                removeNode(node->right);
+                return true;
+            } else {
+                removeNode(node);
+                return true;
+            }
+        }
+        // else
+        return val < node->value ? recursiveDelete(node->left, val)
+                                 : recursiveDelete(node->right, val);
+    }
+
+    void removeNode(std::unique_ptr<Node>& node){
+        /**
+         * Auxiliary function for removing a node.
+         * This function cover the first and second case of a node delation:
+         * node is a leaf or has only one child.
+         * Note that in case of leaf, doesn't really matter which node we pick
+         * up, will be always null.
+         * So, if the situation is something like:
+         *      5
+         *   4     8
+         * 1          9
+         *  and we need to delete 8, the firt condition is met, and the right
+         *  node is taken.
+         *  If we want to delete a leaf (e.g. 9), then again, the first
+         *  condition is met and right will be assign to node (in this case,
+         *  with value null).
+         *  In case we want to delete 4, the first consition fails, so we left
+         *  node (1) will be substitute to 4.
+        */
+        if(node->left == nullptr){
+            // second case, one child. Make the child the parent
+            node = std::move(node->right);
+        } else {
+            // second case and first case.
+            node = std::move(node->left);
+        }
     }
 };
 

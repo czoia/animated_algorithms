@@ -55,3 +55,41 @@ TEST_CASE( "Simple binary tree: print", "[binarytree]" ) {
     bt.setOrder(VisitingOrder::PostOrder);
     REQUIRE( bt.print() == " 1 4 3 2");
 }
+
+TEST_CASE( "Simple binary tree: delete", "[binarytree]" ) {
+    BinaryTree<int> bt{2};
+    bt.insert(1);
+    bt.insert(3);
+    bt.insert(4);
+    REQUIRE( bt.print() == " 2 1 3 4");
+
+    REQUIRE(bt.deleteElement(4));
+    REQUIRE( bt.print() == " 2 1 3");
+
+    REQUIRE(bt.deleteElement(2));
+    REQUIRE( bt.print() == " 3 1");
+
+    REQUIRE(bt.deleteElement(3));
+    REQUIRE( bt.print() == " 1");
+
+    REQUIRE(bt.deleteElement(1));
+    REQUIRE( bt.print() == "");
+
+    REQUIRE(!bt.deleteElement(1));
+
+    bt.insert(10);
+    bt.insert(7);
+    bt.insert(5);
+    bt.insert(8);
+    bt.insert(9);
+
+    bt.insert(15);
+    bt.insert(16);
+    bt.insert(14);
+    bt.insert(13);
+    REQUIRE( bt.print() == " 10 7 5 8 9 15 14 13 16");
+    REQUIRE(bt.deleteElement(8));
+    REQUIRE( bt.print() == " 10 7 5 9 15 14 13 16");
+    REQUIRE(bt.deleteElement(14));
+    REQUIRE( bt.print() == " 10 7 5 9 15 13 16");
+}
