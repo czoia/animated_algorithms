@@ -8,6 +8,12 @@
 enum VisitingOrder { InOrder, PreOrder, PostOrder };
 
 
+class EmptyTreeException: std::exception {
+    const char * what() const throw() {
+        return "Try to perform an operation on a empty tree";
+    }
+};
+
 template<class T>
 struct TreeNode{
 public:
@@ -124,41 +130,83 @@ public:
         order = newOrder;
     }
 
+    size_t getHeight() {
+        return recursiveGetHeight(root);
+    }
+
+    bool isBalanced() {
+        if(root == nullptr ) return true;
+        size_t l = recursiveGetHeight(root->left);
+        size_t r = recursiveGetHeight(root->right);
+        return  ( l > r ? l - r : r - l ) <= 1;
+    }
+
+    void balance() {
+        /**
+         * Function for balance the actual binary tree.
+         *
+         * In order to do that, the function store in a vector an in-order
+         * traversal of the nodes value, and then re-create the tree according
+         * starting from the middle of the vector.
+        */
+        std::vector<T> v;
+        makeInOrderVector(v, root);
+        root = makeNode(0, v.size()-1, v);
+    }
+
     std::string print() const {
         if(root == nullptr) return "";
         switch(order){
         case VisitingOrder::InOrder:
-            return recursiveInOrder(root.get());
+            return recursiveInOrder(root);
         case VisitingOrder::PreOrder:
-            return recursivePreOrder(root.get());
+            return recursivePreOrder(root);
         case VisitingOrder::PostOrder:
-            return recursivePostOrder(root.get());
+            return recursivePostOrder(root);
         }
         throw std::invalid_argument("Order value invalid " + std::to_string(order));
     }
 
+    T getMax() {
+        if(root == nullptr) throw EmptyTreeException();
+
+        Node* right = root.get();
+        while(right->right != nullptr) right = right->right.get();
+
+        return right->value;
+    }
+
+    T getMin() {
+        if(root == nullptr) throw EmptyTreeException();
+
+        Node* left = root.get();
+        while(left->left != nullptr) left = left->left.get();
+
+        return left->value;
+    }
+
 private:
-    std::string recursiveInOrder(Node const* node) const {
+    std::string recursiveInOrder(const std::unique_ptr<Node>& node) const {
         if(node == nullptr) return "";
         std::string retVal{" "};
         retVal += std::to_string(node->value);
-        retVal += recursiveInOrder(node->left.get());
-        retVal += recursiveInOrder(node->right.get());
+        retVal += recursiveInOrder(node->left);
+        retVal += recursiveInOrder(node->right);
         return retVal;
     }
 
-    std::string recursivePreOrder(Node const* node) const {
+    std::string recursivePreOrder(const std::unique_ptr<Node>& node) const {
         if(node == nullptr) return "";
-        std::string retVal{recursivePreOrder(node->left.get())};
+        std::string retVal{recursivePreOrder(node->left)};
         retVal += " " + std::to_string(node->value);
-        retVal += recursivePreOrder(node->right.get());
+        retVal += recursivePreOrder(node->right);
         return retVal;
     }
 
-    std::string recursivePostOrder(Node const* node) const {
+    std::string recursivePostOrder(const std::unique_ptr<Node>& node) const {
         if(node == nullptr) return "";
-        std::string retVal{recursivePostOrder(node->left.get())};
-        retVal += recursivePostOrder(node->right.get());
+        std::string retVal{recursivePostOrder(node->left)};
+        retVal += recursivePostOrder(node->right);
         retVal += " " + std::to_string(node->value);
         return retVal;
     }
@@ -186,10 +234,8 @@ private:
             if(node->left != nullptr && node->right != nullptr){
                 // third case,
                 // find the leftmost descendant in the right subtree
-                Node* parent = node.get();
                 Node* leftmost = node->right.get();
                 while(leftmost->left != nullptr){
-                    parent = leftmost;
                     leftmost = leftmost->left.get();
                 }
                 node->value = leftmost->value;
@@ -231,6 +277,36 @@ private:
             // second case and first case.
             node = std::move(node->left);
         }
+    }
+
+    size_t recursiveGetHeight(std::unique_ptr<Node>& node){
+        if(node == nullptr) return 0;
+        return std::max(recursiveGetHeight(node->left), recursiveGetHeight(node->right)) + 1;
+    }
+
+    size_t recursiveIsBalanced(std::unique_ptr<Node>& node) {
+        if( node == nullptr ) return 0;
+
+        size_t left = recursiveIsBalanced(node->left) + 1;
+        size_t right = recursiveIsBalanced(node->right) + 1;
+        return left > right ? left - right : right - left;
+    }
+
+    void makeInOrderVector(std::vector<T>& vec, const std::unique_ptr<Node>& node){
+        if(node == nullptr) return; // base case
+        makeInOrderVector(vec, node->left);
+        vec.push_back(node->value);
+        makeInOrderVector(vec, node->right);
+    }
+
+    std::unique_ptr<Node> makeNode(int low, int high, const std::vector<T>& v){
+        if (low > high) return nullptr;
+        int mid = (low + high) / 2;
+
+        auto n = std::make_unique<Node>(v[mid]);
+        n->left = makeNode(low, mid-1, v);
+        n->right = makeNode(mid+1, high, v);
+        return n;
     }
 };
 

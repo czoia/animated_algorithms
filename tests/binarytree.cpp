@@ -93,3 +93,78 @@ TEST_CASE( "Simple binary tree: delete", "[binarytree]" ) {
     REQUIRE(bt.deleteElement(14));
     REQUIRE( bt.print() == " 10 7 5 9 15 13 16");
 }
+
+TEST_CASE( "Simple binary tree: min/max", "[binarytree]" ) {
+    BinaryTree<int> bt{10};
+    bt.insert(7);
+    bt.insert(5);
+    bt.insert(8);
+    bt.insert(9);
+
+    bt.insert(15);
+    bt.insert(16);
+    bt.insert(14);
+    bt.insert(13);
+
+    REQUIRE( bt.getMax() == 16);
+    REQUIRE( bt.getMin() == 5);
+
+    BinaryTree<int> bt2;
+    REQUIRE_THROWS_AS(bt2.getMax(), EmptyTreeException);
+    REQUIRE_THROWS_AS(bt2.getMin(), EmptyTreeException);
+}
+
+TEST_CASE( "Simple binary tree: getHeight", "[binarytree]" ) {
+    BinaryTree<int> bt{10};
+    bt.insert(7);
+    bt.insert(5);
+    bt.insert(8);
+    bt.insert(9);
+
+    bt.insert(15);
+    bt.insert(16);
+    bt.insert(14);
+    bt.insert(13);
+
+    REQUIRE( bt.getHeight() == 4);
+
+    bt.insert(4);
+    bt.insert(3);
+    bt.insert(2);
+    bt.insert(1);
+
+    REQUIRE( bt.getHeight() == 7);
+
+
+    BinaryTree<int> bt2;
+    REQUIRE( bt2.getHeight() == 0);
+}
+
+
+TEST_CASE( "Simple binary tree: balance a tree", "[binarytree]" ) {
+    BinaryTree<int> bt{10};
+    bt.insert(7);
+    bt.insert(5);
+    bt.insert(8);
+    bt.insert(9);
+
+    bt.insert(15);
+    bt.insert(16);
+    bt.insert(14);
+    bt.insert(13);
+
+    REQUIRE( bt.isBalanced());
+
+    bt.insert(4);
+    bt.insert(3);
+    bt.insert(2);
+    bt.insert(1);
+
+    REQUIRE( !bt.isBalanced());
+
+    bt.balance();
+    REQUIRE( bt.isBalanced());
+    bt.balance();
+    BinaryTree<int> bt2;
+    REQUIRE( bt2.isBalanced());
+}
